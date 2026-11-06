@@ -1,13 +1,14 @@
-use std::{
-    io::{Result, Write},
-    net::TcpListener,
-};
+use std::io::{Read, Result, Write};
 
 fn main() -> Result<()> {
-    for stream in TcpListener::bind("127.0.0.1:6379").unwrap().incoming() {
-        match stream {
+    let mut buf = [0; 512];
+
+    for result in std::net::TcpListener::bind("127.0.0.1:6379")?.incoming() {
+        match result {
             Ok(mut stream) => {
-                stream.write_all("+PONG\r\n".as_bytes())?;
+                while stream.read(&mut buf)? != 0 {
+                    stream.write_all(b"+PONG\r\n")?;
+                }
             }
             Err(e) => {
                 println!("error: {}", e);
